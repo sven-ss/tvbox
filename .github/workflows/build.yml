@@ -3,9 +3,11 @@ name: Build TVBox APK
 on:
   push:
     branches: [ "**" ]
-  pull_request:
-    branches: [ "**" ]
+    tags: [ "v*" ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -25,20 +27,32 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Accept Android Licenses and Install SDK
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
+
       - name: Make Gradle Wrapper executable
         run: chmod +x ./gradlew
 
       - name: Build Debug APK
         run: |
-          ./gradlew assembleDebug --stacktrace --console=plain > build.log 2>&1 || {
-            echo "====== BUILD FAILED: PRINTING FULL LOG ======"
-            cat build.log
-            exit 1
-          }
+          ./gradlew assembleDebug --console=plain --no-daemon
 
-      - name: Upload Debug APK
+      - name: Upload Debug APK to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: TVBox-debug-focus-fixed
           path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+
+      - name: Create Release on Tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/debug/*.apk
+          name: TVBox v1.3.11 (遥控器焦点修复版)
+          body: |
+            修复了搜索页与 AI 找片页在输入框输入文字后遥控器选择框卡死无法移出的缺陷：
+            - 遥控器右键：强制将焦点转移至【搜索】按钮
+            - 遥控器下键：将焦点移出输入框落入结果海报网格
+            - 遥控器确认/回车键：收起键盘、提交搜索并将焦点转移至【搜索】按钮
