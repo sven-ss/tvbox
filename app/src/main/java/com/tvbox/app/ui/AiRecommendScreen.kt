@@ -43,6 +43,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import android.view.KeyEvent as AndroidKeyEvent
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.nativeKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.tvbox.app.ui.components.ErrorState
 import com.tvbox.app.ui.components.LoadingState
 import com.tvbox.app.ui.components.PageSurface
@@ -55,6 +63,8 @@ fun AiRecommendScreen(
     actions: TvBoxViewModel,
     onStartVoiceInput: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val findFocusRequester = remember { FocusRequester() }
     val inputEnabled = !state.aiLoading && !state.aiVoiceListening && state.aiResolvingKeyword == null
 
@@ -81,12 +91,39 @@ fun AiRecommendScreen(
                 OutlinedTextField(
                     value = state.aiQuery,
                     onValueChange = actions::updateAiQuery,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .onPreviewKeyEvent { event ->
+                            if (event.type == KeyEventType.KeyDown) {
+                                when (event.nativeKeyEvent.keyCode) {
+                                    AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> {
+                                        findFocusRequester.requestFocus()
+                                        true
+                                    }
+                                    AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
+                                        focusManager.moveFocus(FocusDirection.Down)
+                                    }
+                                    AndroidKeyEvent.KEYCODE_DPAD_CENTER,
+                                    AndroidKeyEvent.KEYCODE_ENTER,
+                                    AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                                        actions.submitAiRecommendation()
+                                        keyboardController?.hide()
+                                        findFocusRequester.requestFocus()
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            } else false
+                        },
                     enabled = inputEnabled,
                     singleLine = true,
                     label = { Text("例如：悬疑电视剧推荐") },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { actions.submitAiRecommendation() }),
+                    keyboardActions = KeyboardActions(onSearch = {
+                        actions.submitAiRecommendation()
+                        keyboardController?.hide()
+                        findFocusRequester.requestFocus()
+                    }),
                 )
                 AiActionButton(
                     text = if (state.aiLoading) "找片中" else "找片",

@@ -33,6 +33,16 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import android.view.KeyEvent as AndroidKeyEvent
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.nativeKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.tvbox.app.ui.components.ErrorState
 import com.tvbox.app.ui.components.LoadingState
 import com.tvbox.app.ui.components.MoviePosterCard
@@ -47,6 +57,9 @@ fun SearchScreen(
     actions: TvBoxViewModel,
 ) {
     val grid = rememberLazyGridState()
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val searchButtonFocusRequester = remember { FocusRequester() }
     val returnFocus = rememberReturnFocus()
     var savedQuery by rememberSaveable { mutableStateOf(state.searchQuery) }
     LaunchedEffect(state.searchQuery) {
@@ -75,18 +88,55 @@ fun SearchScreen(
                 OutlinedTextField(
                     value = state.searchQuery,
                     onValueChange = actions::updateSearchQuery,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .onPreviewKeyEvent { event ->
+                            if (event.type == KeyEventType.KeyDown) {
+                                when (event.nativeKeyEvent.keyCode) {
+                                    AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> {
+                                        searchButtonFocusRequester.requestFocus()
+                                        true
+                                    }
+                                    AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
+                                        focusManager.moveFocus(FocusDirection.Down)
+                                    }
+                                    AndroidKeyEvent.KEYCODE_DPAD_CENTER,
+                                    AndroidKeyEvent.KEYCODE_ENTER,
+                                    AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
+                                        actions.submitSearch()
+                                        keyboardController?.hide()
+                                        searchButtonFocusRequester.requestFocus()
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            } else false
+                        },
                     singleLine = true,
                     label = { Text("影片名称") },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { actions.submitSearch() }),
+                    keyboardActions = KeyboardActions(onSearch = {
+                        actions.submitSearch()
+                        keyboardController?.hide()
+                        searchButtonFocusRequester.requestFocus()
+                    }),
                 )
                 SearchActionButton(
                     text = if (state.searchLoading) "搜索中" else "搜索",
-                    onClick = actions::submitSearch,
+                    onClick = {
+                        actions.submitSearch()
+                        keyboardController?.hide()
+                    },
+                    modifier = Modifier.focusRequester(searchButtonFocusRequester),
                     enabled = !state.searchLoading,
                 )
-                SearchActionButton(text = "返回", onClick = actions::goBack)
+                SearchActionButton(
+                    text = "返回",
+                    onClick = {
+                        keyboardController?.hide()
+                        actions.goBack()
+                    },
+                )
             }
             Spacer(modifier = Modifier.height(22.dp))
             val searchProgress = state.searchTotalSources.takeIf { it > 0 }?.let { total ->
@@ -138,6 +188,7 @@ fun SearchScreen(
 private fun SearchActionButton(
     text: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
     val shape = RoundedCornerShape(50)
@@ -145,7 +196,7 @@ private fun SearchActionButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = Modifier
+        modifier = modifier
             .tvFocusScale(
                 shape = shape,
                 focusedBorder = TvColors.FocusRing,
