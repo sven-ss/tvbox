@@ -30,18 +30,23 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          set -o pipefail
           ./gradlew assembleDebug --stacktrace --console=plain 2>&1 | tee build.log
 
-      - name: Output Build Log on Failure
+      - name: Print Build Log
         if: always()
         run: |
           if [ -f build.log ]; then
-            echo "### Build Log" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 120 build.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "====== BUILD LOG (TAIL 100) ======"
+            tail -n 100 build.log
           fi
+
+      - name: Upload Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
 
       - name: Upload Debug APK
         if: success()
