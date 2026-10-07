@@ -30,24 +30,13 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          ./gradlew assembleDebug --stacktrace --console=plain 2>&1 | tee build.log
-
-      - name: Annotate Error
-        if: failure()
-        run: |
-          ERR_MSG=$(tail -n 25 build.log | tr '\r\n' '  ' | sed 's/"//g')
-          echo "::error title=Gradle Build Error::$ERR_MSG"
-
-      - name: Upload Build Log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          if-no-files-found: ignore
+          ./gradlew assembleDebug --stacktrace --console=plain > build.log 2>&1 || {
+            echo "====== BUILD FAILED: PRINTING FULL LOG ======"
+            cat build.log
+            exit 1
+          }
 
       - name: Upload Debug APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: TVBox-debug-focus-fixed
