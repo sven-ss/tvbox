@@ -32,13 +32,11 @@ jobs:
         run: |
           ./gradlew assembleDebug --stacktrace --console=plain 2>&1 | tee build.log
 
-      - name: Print Build Log
-        if: always()
+      - name: Annotate Error
+        if: failure()
         run: |
-          if [ -f build.log ]; then
-            echo "====== BUILD LOG (TAIL 100) ======"
-            tail -n 100 build.log
-          fi
+          ERR_MSG=$(tail -n 25 build.log | tr '\r\n' '  ' | sed 's/"//g')
+          echo "::error title=Gradle Build Error::$ERR_MSG"
 
       - name: Upload Build Log
         if: always()
