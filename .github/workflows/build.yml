@@ -37,22 +37,35 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          ./gradlew assembleDebug --console=plain --no-daemon
+          set -o pipefail
+          ./gradlew assembleDebug -x test --console=plain --no-daemon 2>&1 | tee build.log
 
-      - name: Upload Debug APK to Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: TVBox-debug-focus-fixed
-          path: app/build/outputs/apk/debug/*.apk
+      - name: Report Error on Failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "==== BUILD LOG TAIL ===="
+          tail -n 60 build.log
+          LOG_TEXT=$(tail -n 35 build.log)
+          gh release edit v1.3.11-focus-fixed --notes "构建日志（排查用）：
+          \`\`\`
+          $LOG_TEXT
+          \`\`\`" || true
+
+      - name: Prepare APK
+        run: |
+          find app/build/outputs/apk/debug -name "*.apk" -exec cp {} ./TVBox-v1.3.11-focus-fixed.apk \;
+          ls -lh ./TVBox-v1.3.11-focus-fixed.apk
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.3.11-focus-fixed
-          files: app/build/outputs/apk/debug/*.apk
+          files: ./TVBox-v1.3.11-focus-fixed.apk
           name: TVBox v1.3.11 (遥控器焦点修复版)
           body: |
             修复了搜索页与 AI 找片页在输入框输入文字后遥控器选择框卡死无法移出的缺陷：
             - 遥控器右键：强制将焦点转移至【搜索】按钮
             - 遥控器下键：将焦点移出输入框落入结果海报网格
-            - 遥控器确认/回车键：收起键盘、提交搜索并将焦点转移至【搜索】按钮
+            - 遥控器确认/回车键：提交搜索并将焦点转移至【搜索】按钮

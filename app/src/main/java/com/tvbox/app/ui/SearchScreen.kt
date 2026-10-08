@@ -42,7 +42,6 @@ import androidx.compose.ui.input.key.nativeKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.tvbox.app.ui.components.ErrorState
 import com.tvbox.app.ui.components.LoadingState
 import com.tvbox.app.ui.components.MoviePosterCard
@@ -58,7 +57,6 @@ fun SearchScreen(
 ) {
     val grid = rememberLazyGridState()
     val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
     val searchButtonFocusRequester = remember { FocusRequester() }
     val returnFocus = rememberReturnFocus()
     var savedQuery by rememberSaveable { mutableStateOf(state.searchQuery) }
@@ -104,7 +102,6 @@ fun SearchScreen(
                                     AndroidKeyEvent.KEYCODE_ENTER,
                                     AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                                         actions.submitSearch()
-                                        keyboardController?.hide()
                                         searchButtonFocusRequester.requestFocus()
                                         true
                                     }
@@ -117,7 +114,6 @@ fun SearchScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
                         actions.submitSearch()
-                        keyboardController?.hide()
                         searchButtonFocusRequester.requestFocus()
                     }),
                 )
@@ -125,7 +121,6 @@ fun SearchScreen(
                     text = if (state.searchLoading) "搜索中" else "搜索",
                     onClick = {
                         actions.submitSearch()
-                        keyboardController?.hide()
                     },
                     modifier = Modifier.focusRequester(searchButtonFocusRequester),
                     enabled = !state.searchLoading,
@@ -133,7 +128,6 @@ fun SearchScreen(
                 SearchActionButton(
                     text = "返回",
                     onClick = {
-                        keyboardController?.hide()
                         actions.goBack()
                     },
                 )

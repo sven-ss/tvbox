@@ -50,7 +50,6 @@ import androidx.compose.ui.input.key.nativeKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.tvbox.app.ui.components.ErrorState
 import com.tvbox.app.ui.components.LoadingState
 import com.tvbox.app.ui.components.PageSurface
@@ -64,7 +63,6 @@ fun AiRecommendScreen(
     onStartVoiceInput: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
     val findFocusRequester = remember { FocusRequester() }
     val inputEnabled = !state.aiLoading && !state.aiVoiceListening && state.aiResolvingKeyword == null
 
@@ -107,7 +105,6 @@ fun AiRecommendScreen(
                                     AndroidKeyEvent.KEYCODE_ENTER,
                                     AndroidKeyEvent.KEYCODE_NUMPAD_ENTER -> {
                                         actions.submitAiRecommendation()
-                                        keyboardController?.hide()
                                         findFocusRequester.requestFocus()
                                         true
                                     }
@@ -121,7 +118,6 @@ fun AiRecommendScreen(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
                         actions.submitAiRecommendation()
-                        keyboardController?.hide()
                         findFocusRequester.requestFocus()
                     }),
                 )
