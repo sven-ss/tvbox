@@ -143,8 +143,18 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
      */
     void reload(List<Cards.Card> cards) {
         PackageManager pm = ctx.getPackageManager();
-        Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
-        List<ResolveInfo> found = pm.queryIntentActivities(probe, 0);
+        Intent leanbackProbe = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
+        Intent normalProbe = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> found = new ArrayList<>(pm.queryIntentActivities(leanbackProbe, 0));
+        Set<String> seen = new HashSet<>();
+        for (ResolveInfo ri : found) {
+            if (ri.activityInfo != null) seen.add(ri.activityInfo.packageName);
+        }
+        for (ResolveInfo ri : pm.queryIntentActivities(normalProbe, 0)) {
+            if (ri.activityInfo != null && seen.add(ri.activityInfo.packageName)) {
+                found.add(ri);
+            }
+        }
         Map<String, Cards.Card> cardByPkg = new HashMap<>();
         for (Cards.Card c : cards) cardByPkg.put(c.pkg, c);
         List<Entry> fresh = new ArrayList<>();
