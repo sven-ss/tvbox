@@ -1,0 +1,57 @@
+name: Build CleanYourTV Launcher
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "launcher-*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Launcher APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Release APK
+        run: |
+          cd launcher_src
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --console=plain --no-daemon
+
+      - name: Prepare APK
+        run: |
+          cp launcher_src/app/build/outputs/apk/release/*.apk ./CleanYourTV-Launcher-v2.3.apk
+          ls -lh ./CleanYourTV-Launcher-v2.3.apk
+
+      - name: Upload Launcher APK to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CleanYourTV-Launcher
+          path: ./CleanYourTV-Launcher-v2.3.apk
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: launcher-v2.3
+          files: ./CleanYourTV-Launcher-v2.3.apk
+          name: CleanYourTV Launcher v2.3 (Apple TV 极简电视桌面)
+          body: |
+            CleanYourTV 极简原生电视桌面（Apple TV 风格，体积仅约 280KB）：
+            - 0 广告、极简毛玻璃卡片、物理弹簧动效
+            - 仅占约 10MB 运行内存，极大减轻当贝盒子负担
+            - 完美适配当贝盒子遥控器操作
