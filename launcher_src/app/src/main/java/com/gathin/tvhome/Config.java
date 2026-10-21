@@ -51,6 +51,7 @@ final class Config {
     /** Calmer motion for weak GPUs (config.xml, reduced_motion): stiff spring, short fades, no replay. */
     final boolean reducedMotion;
     final String vpnApp;
+    final String glassShelf;
     final boolean showHomeSettingsShortcut;
     /** Background colour behind everything, #RRGGBB; black unless a theme says otherwise. */
     final int backgroundColor;
@@ -82,6 +83,7 @@ final class Config {
         this.moduleCards = moduleCards;
         this.reducedMotion = reducedMotion;
         this.vpnApp = vpnApp;
+        this.glassShelf = glassShelf != null ? glassShelf : "dark";
         this.showHomeSettingsShortcut = showHomeSettingsShortcut;
         this.backgroundColor = backgroundColor;
         this.skyIntensity = skyIntensity;
@@ -155,7 +157,7 @@ final class Config {
 
         return new Config(dock, hidden, liveTv, liveTvAction, panelService, panelAction, inputAction,
                 Math.max(1, columns), Math.max(0, rowsBelow), animations, advancedEffects,
-                shamsi, moduleCards, reducedMotion, vpn, homeSettings, background,
+                shamsi, moduleCards, reducedMotion, vpn, glassShelf, homeSettings, background,
                 Math.max(0, Math.min(100, skyIntensity)), wallpaper, applied);
     }
 
