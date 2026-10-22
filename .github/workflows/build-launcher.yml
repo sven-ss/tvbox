@@ -31,7 +31,22 @@ jobs:
         run: |
           cd launcher_src
           chmod +x ./gradlew
-          ./gradlew assembleRelease --console=plain --no-daemon
+          set -o pipefail
+          ./gradlew assembleRelease --console=plain --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Show Log on Failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd launcher_src
+          echo "==== BUILD LOG TAIL ===="
+          tail -n 80 build.log
+          LOG_TEXT=$(tail -n 40 build.log)
+          gh release edit launcher-v2.3 --notes "编译日志：
+          \`\`\`
+          $LOG_TEXT
+          \`\`\`" || true
 
       - name: Prepare APK
         run: |
