@@ -29,7 +29,7 @@ public class GlassView extends View {
         radius = 20f * density;
         rim.setStyle(Paint.Style.STROKE);
         rim.setStrokeWidth(1.5f * density);
-        rim.setColor(0xCCFFFFFF);
+        rim.setColor(0x00000000);
         glow.setStyle(Paint.Style.STROKE);
         // Cache the slab as a texture. The spring only changes translation, so the GPU can
         // move it without replaying clipPath and the glow on every frame. That path is
@@ -45,8 +45,8 @@ public class GlassView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        fill.setShader(new LinearGradient(0, 0, 0, h, 0x3DFFFFFF, 0x12FFFFFF, Shader.TileMode.CLAMP));
-        specular.setShader(new LinearGradient(0, 0, 0, h * 0.45f, 0x66FFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP));
+        fill.setShader(new LinearGradient(0, 0, 0, h, 0x00FFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP));
+        specular.setShader(new LinearGradient(0, 0, 0, h * 0.45f, 0x00FFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP));
     }
 
     @Override
@@ -72,6 +72,6 @@ public class GlassView extends View {
         canvas.drawRoundRect(rect, radius, radius, specular);
         canvas.restore();
 
-        canvas.drawRoundRect(rect, radius, radius, rim);
+        // canvas.drawRoundRect(rect, radius, radius, rim); // 移除生硬白框
     }
 }
