@@ -209,6 +209,21 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     private Drawable loadBanner(PackageManager pm, ResolveInfo ri) {
         if (ri.activityInfo != null) {
             String pkg = ri.activityInfo.packageName;
+            try {
+                java.io.File ext = ctx.getExternalFilesDir(null);
+                if (ext != null && ext.getParentFile() != null) {
+                    java.io.File customIcon = new java.io.File(ext.getParentFile(), "icons/" + pkg + ".png");
+                    if (customIcon.exists()) {
+                        Drawable d = Drawable.createFromPath(customIcon.getAbsolutePath());
+                        if (d != null) return d;
+                    }
+                }
+            } catch (Exception ignored) {}
+            try {
+                java.io.InputStream is = ctx.getAssets().open("icons/" + pkg + ".png");
+                Drawable d = Drawable.createFromStream(is, null);
+                if (d != null) return d;
+            } catch (Exception ignored) {}
             Drawable custom = createAppleTvBanner(pkg); if (custom != null) return custom;
         }
         int id = ri.activityInfo.banner;
@@ -225,35 +240,80 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         return ri.activityInfo.loadBanner(pm);
     }
 
+    /**
+     * 将第三方没有横屏 Banner 的普通应用图标包装成 Apple tvOS 规范的高质感毛玻璃圆角卡片
+     */
+    private Drawable wrapWithAppleTvCard(Drawable icon) {
+        float density = ctx.getResources().getDisplayMetrics().density;
+        int w = (int) (180 * density), h = (int) (101 * density);
+        float radius = 18f * density;
+
+        Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+
+        // 1. 深色半透明优雅黑曜石渐变卡片底座
+        GradientDrawable bg = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{0xFF242730, 0xFF121418}
+        );
+        bg.setCornerRadius(radius);
+        bg.setBounds(0, 0, w, h);
+        bg.draw(canvas);
+
+        // 2. 0.8dp 极细微光边缘
+        Paint rim = new Paint(Paint.ANTI_ALIAS_FLAG);
+        rim.setStyle(Paint.Style.STROKE);
+        rim.setStrokeWidth(1f * density);
+        rim.setColor(0x22FFFFFF);
+        canvas.drawRoundRect(new RectF(0.5f, 0.5f, w - 0.5f, h - 0.5f), radius, radius, rim);
+
+        // 3. 将第三方图标优雅居中呈现（52dp 尺寸，黄金比例留白，绝不拉伸变形）
+        int iconSize = (int) (52 * density);
+        int l = (w - iconSize) / 2, t = (h - iconSize) / 2;
+        icon.setBounds(l, t, l + iconSize, t + iconSize);
+        icon.draw(canvas);
+
+        return new android.graphics.drawable.BitmapDrawable(ctx.getResources(), bmp);
+    }
+
+
     private Drawable createAppleTvBanner(String pkg) {
         float density = ctx.getResources().getDisplayMetrics().density;
         int w = (int) (180 * density), h = (int) (101 * density);
         float radius = 18f * density;
-        int topColor, bottomColor;
-        String iconType;
+        int topColor = 0xFF2A2D35, bottomColor = 0xFF14161C;
+        String iconType = "generic";
 
+        // 核心影音
         if ("org.smarttube.stable".equals(pkg)) {
-            // SmartTube: Apple TV 珊瑚红渐变
             topColor = 0xFFEE384E; bottomColor = 0xFFC2182B; iconType = "smarttube";
         } else if ("com.tvbox.app".equals(pkg)) {
-            // TVBox: Apple TV+ 黑曜石拉丝暗调
             topColor = 0xFF2A2D34; bottomColor = 0xFF121418; iconType = "tvbox";
         } else if ("com.tv.qx".equals(pkg)) {
-            // 千寻直播: 皇家湛蓝纯净渐变，彻底除尽免费角标
             topColor = 0xFF0984E3; bottomColor = 0xFF084B96; iconType = "play";
         } else if ("com.xiaodianshi.tv.yst".equals(pkg)) {
-            // B站: 纯正高级品粉渐变，无中文字符
             topColor = 0xFFFB7299; bottomColor = 0xFFE2387B; iconType = "bilibili";
         } else if ("com.quark.yun.tv".equals(pkg)) {
-            // 夸克: 深空灰质感底色 + 炫彩双环
             topColor = 0xFF262A33; bottomColor = 0xFF14161B; iconType = "quark";
+        } else if ("io.nekohasekai.sfa".equals(pkg)) {
+            topColor = 0xFF3A3F4D; bottomColor = 0xFF1E2129; iconType = "box";
+        // 投屏与系统工具（彻底美化第二行的丑图标）
+        } else if (pkg != null && (pkg.contains("miracast") || pkg.contains("screencast") || pkg.contains("airplay"))) {
+            topColor = 0xFF1B9CFC; bottomColor = 0xFF182C61; iconType = "cast";
+        } else if (pkg != null && (pkg.contains("setting") || pkg.contains("Settings"))) {
+            topColor = 0xFF4B4B4B; bottomColor = 0xFF222222; iconType = "gear";
+        } else if (pkg != null && (pkg.contains("tracing") || pkg.contains("trace"))) {
+            topColor = 0xFF5856D6; bottomColor = 0xFF2C2A7A; iconType = "trace";
+        } else if (pkg != null && (pkg.contains("dangbei") || pkg.contains("haqu") || pkg.contains("etna"))) {
+            topColor = 0xFF2F3542; bottomColor = 0xFF1E222A; iconType = "cube";
         } else {
-            return null;
+            return null; // 未匹配的走高质量通用自适应包装
         }
 
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bmp);
 
+        // 1. 绘制极简纯净大圆角渐变背景
         GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{topColor, bottomColor});
         bg.setCornerRadius(radius);
         bg.setBounds(0, 0, w, h);
@@ -320,6 +380,40 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             paint.setStrokeWidth(3f * density);
             paint.setColor(0xFFFFFFFF);
             canvas.drawCircle(cx, cy, 10f * density, paint);
+        } else if ("cast".equals(iconType)) {
+            // Apple AirPlay 风格极简投屏
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3f * density);
+            RectF r = new RectF(cx - 20f * density, cy - 14f * density, cx + 20f * density, cy + 14f * density);
+            canvas.drawRoundRect(r, 4f * density, 4f * density, paint);
+            paint.setStyle(Paint.Style.FILL);
+            Path tri = new Path();
+            tri.moveTo(cx - 7f * density, cy + 12f * density);
+            tri.lineTo(cx + 7f * density, cy + 12f * density);
+            tri.lineTo(cx, cy + 3f * density);
+            tri.close();
+            canvas.drawPath(tri, paint);
+        } else if ("gear".equals(iconType)) {
+            // Apple TV 精密设置齿轮
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3.5f * density);
+            canvas.drawCircle(cx, cy, 14f * density, paint);
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawCircle(cx, cy, 5f * density, paint);
+        } else if ("cube".equals(iconType) || "box".equals(iconType)) {
+            // 极简现代立体方块
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3f * density);
+            RectF r = new RectF(cx - 15f * density, cy - 15f * density, cx + 15f * density, cy + 15f * density);
+            canvas.drawRoundRect(r, 5f * density, 5f * density, paint);
+            canvas.drawLine(cx, cy - 15f * density, cx, cy + 15f * density, paint);
+            canvas.drawLine(cx - 15f * density, cy, cx + 15f * density, cy, paint);
+        } else if ("trace".equals(iconType)) {
+            // 极简仪表
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3f * density);
+            canvas.drawCircle(cx, cy, 15f * density, paint);
+            canvas.drawLine(cx, cy, cx + 8f * density, cy - 8f * density, paint);
         }
 
         return new android.graphics.drawable.BitmapDrawable(ctx.getResources(), bmp);

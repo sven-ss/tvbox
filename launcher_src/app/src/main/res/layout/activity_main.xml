@@ -17,7 +17,7 @@
         android:id="@+id/ambient"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0" />
+        android:visibility="gone" />
 
     <!-- Top shelf: the focused dock app's name, positioned above the dock in code. -->
     <TextView
