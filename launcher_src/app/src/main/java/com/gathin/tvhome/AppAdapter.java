@@ -169,6 +169,13 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             if (ri.activityInfo == null) continue;
             String pkg = ri.activityInfo.packageName;
             if (pkg.equals(ctx.getPackageName()) || hidden.contains(pkg)) continue;
+
+            // 严格过滤系统预装组件，只展示用户自己安装的应用
+            android.content.pm.ApplicationInfo appInfo = ri.activityInfo.applicationInfo;
+            if (appInfo != null && (appInfo.flags & android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+                    && (appInfo.flags & android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0) {
+                continue;
+            }
             ComponentName component = new ComponentName(pkg, ri.activityInfo.name);
             Cards.Card card = cardByPkg.get(pkg);
             if (card != null && !card.component.equals(component)) continue;   // the card stands in for this tile
@@ -289,10 +296,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             topColor = 0xFFEE384E; bottomColor = 0xFFC2182B; iconType = "smarttube";
         } else if ("com.tvbox.app".equals(pkg)) {
             topColor = 0xFF2A2D34; bottomColor = 0xFF121418; iconType = "tvbox";
-        } else if ("com.tv.qx".equals(pkg)) {
-            topColor = 0xFF0984E3; bottomColor = 0xFF084B96; iconType = "play";
-        } else if ("com.xiaodianshi.tv.yst".equals(pkg)) {
-            topColor = 0xFFFB7299; bottomColor = 0xFFE2387B; iconType = "bilibili";
+        
         } else if ("com.quark.yun.tv".equals(pkg)) {
             topColor = 0xFF262A33; bottomColor = 0xFF14161B; iconType = "quark";
         } else if ("io.nekohasekai.sfa".equals(pkg)) {
