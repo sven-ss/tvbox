@@ -42,7 +42,7 @@ jobs:
           cd launcher_src
           echo "==== BUILD LOG TAIL ===="
           tail -n 80 build.log
-          LOG_TEXT=$(grep -B 2 -A 25 "What went wrong:" build.log || tail -n 40 build.log)
+          LOG_TEXT=$(grep -C 3 -i "error:" build.log || grep -B 2 -A 25 "What went wrong:" build.log)
           gh release edit launcher-v2.3 --notes "编译日志：
           \`\`\`
           $LOG_TEXT
