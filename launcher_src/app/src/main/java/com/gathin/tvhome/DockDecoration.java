@@ -31,7 +31,7 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
     DockDecoration(int dockSize, float density, String glassShelfStyle) {
         this.dockSize = dockSize;
         this.density = density;
-        this.isWhiteShelf = "white".equalsIgnoreCase(glassShelfStyle) || "light".equalsIgnoreCase(glassShelfStyle);
+        this.isWhiteShelf = !"dark".equalsIgnoreCase(glassShelfStyle); // 默认直接采用 Apple tvOS 标志性的白色半透明托盘
 
         rim.setStyle(Paint.Style.STROKE);
         rim.setStrokeWidth(1.2f * density);

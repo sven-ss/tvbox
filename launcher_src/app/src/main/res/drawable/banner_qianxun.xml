@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#FF0984E3"
+                android:endColor="#FF0A3D91"
+                android:type="linear" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    <item android:gravity="center" android:width="44dp" android:height="44dp">
+        <vector
+            android:width="44dp"
+            android:height="44dp"
+            android:viewportWidth="44"
+            android:viewportHeight="44">
+            <!-- 纯白现代极速微光播放三角 -->
+            <path
+                android:fillColor="#FFFFFFFF"
+                android:pathData="M22,0 C9.8,0 0,9.8 0,22 C0,34.2 9.8,44 22,44 C34.2,44 44,34.2 44,22 C44,9.8 34.2,0 22,0 Z M17,31 L17,13 L31,22 L17,31 Z" />
+        </vector>
+    </item>
+</layer-list>
