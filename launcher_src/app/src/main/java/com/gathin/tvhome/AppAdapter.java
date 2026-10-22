@@ -226,6 +226,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     }
 
     private Drawable createAppleTvBanner(String pkg) {
+        float density = ctx.getResources().getDisplayMetrics().density;
         int w = (int) (180 * density), h = (int) (101 * density);
         float radius = 18f * density;
         int topColor, bottomColor;
