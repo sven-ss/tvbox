@@ -225,6 +225,105 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         return ri.activityInfo.loadBanner(pm);
     }
 
+    private Drawable createAppleTvBanner(String pkg) {
+        int w = (int) (180 * density), h = (int) (101 * density);
+        float radius = 18f * density;
+        int topColor, bottomColor;
+        String iconType;
+
+        if ("org.smarttube.stable".equals(pkg)) {
+            // SmartTube: Apple TV 珊瑚红渐变
+            topColor = 0xFFEE384E; bottomColor = 0xFFC2182B; iconType = "smarttube";
+        } else if ("com.tvbox.app".equals(pkg)) {
+            // TVBox: Apple TV+ 黑曜石拉丝暗调
+            topColor = 0xFF2A2D34; bottomColor = 0xFF121418; iconType = "tvbox";
+        } else if ("com.tv.qx".equals(pkg)) {
+            // 千寻直播: 皇家湛蓝纯净渐变，彻底除尽免费角标
+            topColor = 0xFF0984E3; bottomColor = 0xFF084B96; iconType = "play";
+        } else if ("com.xiaodianshi.tv.yst".equals(pkg)) {
+            // B站: 纯正高级品粉渐变，无中文字符
+            topColor = 0xFFFB7299; bottomColor = 0xFFE2387B; iconType = "bilibili";
+        } else if ("com.quark.yun.tv".equals(pkg)) {
+            // 夸克: 深空灰质感底色 + 炫彩双环
+            topColor = 0xFF262A33; bottomColor = 0xFF14161B; iconType = "quark";
+        } else {
+            return null;
+        }
+
+        Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{topColor, bottomColor});
+        bg.setCornerRadius(radius);
+        bg.setBounds(0, 0, w, h);
+        bg.draw(canvas);
+
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(0xFFFFFFFF);
+        paint.setStyle(Paint.Style.FILL);
+
+        float cx = w / 2f, cy = h / 2f;
+        if ("smarttube".equals(iconType)) {
+            float bw = 24f * density, bh = 18f * density;
+            RectF r = new RectF(cx - bw, cy - bh, cx + bw, cy + bh);
+            canvas.drawRoundRect(r, 6f * density, 6f * density, paint);
+            Paint redP = new Paint(Paint.ANTI_ALIAS_FLAG);
+            redP.setColor(bottomColor);
+            Path tri = new Path();
+            tri.moveTo(cx - 5f * density, cy - 7f * density);
+            tri.lineTo(cx + 8f * density, cy);
+            tri.lineTo(cx - 5f * density, cy + 7f * density);
+            tri.close();
+            canvas.drawPath(tri, redP);
+        } else if ("play".equals(iconType)) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3.5f * density);
+            canvas.drawCircle(cx, cy, 18f * density, paint);
+            paint.setStyle(Paint.Style.FILL);
+            Path tri = new Path();
+            tri.moveTo(cx - 5f * density, cy - 9f * density);
+            tri.lineTo(cx + 10f * density, cy);
+            tri.lineTo(cx - 5f * density, cy + 9f * density);
+            tri.close();
+            canvas.drawPath(tri, paint);
+        } else if ("bilibili".equals(iconType)) {
+            float bw = 22f * density, bh = 15f * density;
+            RectF r = new RectF(cx - bw, cy - bh + 2f * density, cx + bw, cy + bh + 2f * density);
+            canvas.drawRoundRect(r, 5f * density, 5f * density, paint);
+            paint.setStrokeWidth(2.5f * density);
+            paint.setStyle(Paint.Style.STROKE);
+            canvas.drawLine(cx - 10f * density, cy - bh + 2f * density, cx - 18f * density, cy - bh - 6f * density, paint);
+            canvas.drawLine(cx + 10f * density, cy - bh + 2f * density, cx + 18f * density, cy - bh - 6f * density, paint);
+            Paint dotP = new Paint(Paint.ANTI_ALIAS_FLAG);
+            dotP.setColor(bottomColor);
+            dotP.setStyle(Paint.Style.FILL);
+            canvas.drawCircle(cx - 9f * density, cy + 1f * density, 2.5f * density, dotP);
+            canvas.drawCircle(cx + 9f * density, cy + 1f * density, 2.5f * density, dotP);
+        } else if ("tvbox".equals(iconType)) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(3f * density);
+            RectF r = new RectF(cx - 22f * density, cy - 14f * density, cx + 22f * density, cy + 14f * density);
+            canvas.drawRoundRect(r, 5f * density, 5f * density, paint);
+            paint.setStyle(Paint.Style.FILL);
+            Path tri = new Path();
+            tri.moveTo(cx - 4f * density, cy - 6f * density);
+            tri.lineTo(cx + 6f * density, cy);
+            tri.lineTo(cx - 4f * density, cy + 6f * density);
+            tri.close();
+            canvas.drawPath(tri, paint);
+        } else if ("quark".equals(iconType)) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(4f * density);
+            paint.setColor(0xFF00D2D3);
+            canvas.drawCircle(cx, cy, 17f * density, paint);
+            paint.setStrokeWidth(3f * density);
+            paint.setColor(0xFFFFFFFF);
+            canvas.drawCircle(cx, cy, 10f * density, paint);
+        }
+
+        return new android.graphics.drawable.BitmapDrawable(ctx.getResources(), bmp);
+    }
+
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
