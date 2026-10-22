@@ -209,17 +209,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     private Drawable loadBanner(PackageManager pm, ResolveInfo ri) {
         if (ri.activityInfo != null) {
             String pkg = ri.activityInfo.packageName;
-            if ("org.smarttube.stable".equals(pkg)) {
-                return ctx.getDrawable(R.drawable.banner_smarttube);
-            } else if ("com.tvbox.app".equals(pkg)) {
-                return ctx.getDrawable(R.drawable.banner_tvbox);
-            } else if ("com.tv.qx".equals(pkg)) {
-                return ctx.getDrawable(R.drawable.banner_qianxun);
-            } else if ("com.xiaodianshi.tv.yst".equals(pkg)) {
-                return ctx.getDrawable(R.drawable.banner_bilibili);
-            } else if ("com.quark.yun.tv".equals(pkg)) {
-                return ctx.getDrawable(R.drawable.banner_quark);
-            }
+            Drawable custom = createAppleTvBanner(pkg); if (custom != null) return custom;
         }
         int id = ri.activityInfo.banner;
         if (id == 0) id = ri.activityInfo.applicationInfo.banner;
