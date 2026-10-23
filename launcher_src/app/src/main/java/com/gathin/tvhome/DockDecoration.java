@@ -20,6 +20,7 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
     private final int dockSize;
     private final float density;
     private final boolean isWhiteShelf;
+    private final boolean isShelfHidden;
     private final Paint band = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint specular = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint rim = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -31,7 +32,8 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
     DockDecoration(int dockSize, float density, String glassShelfStyle) {
         this.dockSize = dockSize;
         this.density = density;
-        this.isWhiteShelf = !"dark".equalsIgnoreCase(glassShelfStyle); // 默认直接采用 Apple tvOS 标志性的白色半透明托盘
+        this.isShelfHidden = "none".equalsIgnoreCase(glassShelfStyle) || "hide".equalsIgnoreCase(glassShelfStyle) || "false".equalsIgnoreCase(glassShelfStyle);
+        this.isWhiteShelf = "white".equalsIgnoreCase(glassShelfStyle) || "light".equalsIgnoreCase(glassShelfStyle);
 
         rim.setStyle(Paint.Style.STROKE);
         rim.setStrokeWidth(1.2f * density);
@@ -52,6 +54,8 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+        // 用户要求：如果不使用高斯模糊，彻底去掉底部条子，让图标纯净悬浮在壁纸上！
+        if (isShelfHidden) return;
         boolean any = false;
         for (int i = 0; i < parent.getChildCount(); i++) {
             View child = parent.getChildAt(i);
