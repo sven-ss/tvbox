@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#FF000000">
 
-    <!-- 动态时间背景 -->
+    <!-- 动态时间天空背景 -->
     <com.gathin.tvhome.SkyView
         android:id="@+id/sky"
         android:layout_width="match_parent"
@@ -26,7 +26,57 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <!-- 1. 右上角极简状态栏胶囊 (Wi-Fi, 设置) -->
+    <!-- 1. 左上角原位：保留问候语与日期星期 -->
+    <LinearLayout
+        android:id="@+id/headerDateBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="28dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/greeting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textColor="#A6FFFFFF"
+            android:textSize="14sp"
+            android:fontFamily="@font/outfit_medium"
+            android:letterSpacing="0.18"
+            android:textAllCaps="true" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:id="@+id/shamsiDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#E6FFFFFF"
+                android:textSize="16sp"
+                android:fontFamily="@font/outfit_regular"
+                android:visibility="gone" />
+
+            <TextClock
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format12Hour="@string/date_format"
+                android:format24Hour="@string/date_format"
+                android:textColor="#D9FFFFFF"
+                android:textSize="16sp"
+                android:fontFamily="@font/outfit_medium"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 2. 右上角原位：极简状态栏胶囊 (Wi-Fi, 设置) -->
     <LinearLayout
         android:id="@+id/topButtons"
         android:layout_width="wrap_content"
@@ -61,101 +111,52 @@
             android:nextFocusDown="@+id/grid" />
     </LinearLayout>
 
-    <!-- 2. 用户红框指定区域：大号加粗沉浸式时钟与日期展示区 -->
+    <!-- 3. 用户红框指定位置：仅放置加大加粗的大时钟 -->
     <LinearLayout
         android:id="@+id/leftBlock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
         android:layout_marginStart="68dp"
-        android:layout_marginTop="100dp"
-        android:orientation="vertical">
+        android:layout_marginTop="105dp"
+        android:orientation="horizontal"
+        android:baselineAligned="true">
 
-        <!-- 问候语 -->
-        <TextView
-            android:id="@+id/greeting"
+        <TextClock
+            android:id="@+id/clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:textColor="#A6FFFFFF"
-            android:textSize="15sp"
+            android:format12Hour="h:mm"
+            android:format24Hour="HH:mm"
+            android:textColor="#FFFFFFFF"
+            android:textSize="96sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/outfit"
+            android:letterSpacing="-0.03"
+            android:includeFontPadding="false" />
+
+        <TextClock
+            android:id="@+id/ampm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="16dp"
+            android:format12Hour="a"
+            android:format24Hour=""
+            android:textColor="#B3FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
             android:fontFamily="@font/outfit_medium"
-            android:letterSpacing="0.22"
             android:textAllCaps="true" />
-
-        <!-- 加大加粗大时钟 (88sp, 粗体, 纯白) -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:baselineAligned="true"
-            android:layout_marginTop="4dp">
-
-            <TextClock
-                android:id="@+id/clock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:format12Hour="h:mm"
-                android:format24Hour="HH:mm"
-                android:textColor="#FFFFFFFF"
-                android:textSize="88sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/outfit"
-                android:letterSpacing="-0.03"
-                android:includeFontPadding="false" />
-
-            <TextClock
-                android:id="@+id/ampm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="12dp"
-                android:format12Hour="a"
-                android:format24Hour=""
-                android:textColor="#CCFFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/outfit_medium"
-                android:textAllCaps="true" />
-        </LinearLayout>
-
-        <!-- 完整日期与星期展示 -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="6dp">
-
-            <TextView
-                android:id="@+id/shamsiDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#E6FFFFFF"
-                android:textSize="18sp"
-                android:fontFamily="@font/outfit_regular"
-                android:visibility="gone" />
-
-            <TextClock
-                android:id="@+id/date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:format12Hour="@string/date_format"
-                android:format24Hour="@string/date_format"
-                android:textColor="#B3FFFFFF"
-                android:textSize="18sp"
-                android:fontFamily="@font/outfit_medium"
-                android:letterSpacing="0.12"
-                android:textAllCaps="true" />
-        </LinearLayout>
     </LinearLayout>
 
-    <!-- 3. 下半部分：两行完整展示的应用网格区 (固定高度，确保第二行不被截断) -->
+    <!-- 4. 下半部分：两行完整展示的应用网格区 (高度充裕，第二行完整呈现) -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="bottom"
-        android:layout_marginTop="290dp"
+        android:layout_marginTop="280dp"
         android:paddingStart="56dp"
         android:paddingEnd="56dp">
 
