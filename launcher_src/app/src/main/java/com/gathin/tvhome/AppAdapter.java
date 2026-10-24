@@ -453,11 +453,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         h.name.setVisibility(position < dockSize ? View.INVISIBLE : View.VISIBLE);   // the dock has no labels
         boolean focused = h.card.isFocused();   // a rebind after reload() can hit the focused tile
         h.name.setAlpha(focused ? 1f : 0f);
-        h.card.setPivotX(w / 2f);
-        h.card.setPivotY(h / 2f);
+        float density = ctx.getResources().getDisplayMetrics().density;
+        h.card.setPivotX(h.card.getWidth() / 2f);
+        h.card.setPivotY(h.card.getHeight() / 2f);
         h.card.setScaleX(focused && animations ? 1.14f : 1f);
         h.card.setScaleY(focused && animations ? 1.14f : 1f);
-        h.card.setTranslationY(0f); // 绝不偏心上移
+        h.card.setTranslationY(0f);
         h.card.setTranslationZ(focused ? 16f * density : 0f);
         h.banner.setScaleX(focused && advancedEffects ? 1.035f : 1f);
         h.banner.setScaleY(focused && advancedEffects ? 1.035f : 1f);
