@@ -220,6 +220,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         ambient.setVisibility(View.GONE);
         ambient.setAlpha(0f);
         heroName = findViewById(R.id.heroName);
+        heroName.setVisibility(View.GONE);
         greeting = findViewById(R.id.greeting);
         btnWifi = findViewById(R.id.btnWifi);
         shamsiDate = findViewById(R.id.shamsiDate);
