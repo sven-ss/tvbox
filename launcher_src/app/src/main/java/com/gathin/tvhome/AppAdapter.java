@@ -216,22 +216,24 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     private Drawable loadBanner(PackageManager pm, ResolveInfo ri) {
         if (ri.activityInfo != null) {
             String pkg = ri.activityInfo.packageName;
-            try {
-                java.io.File ext = ctx.getExternalFilesDir(null);
-                if (ext != null && ext.getParentFile() != null) {
-                    java.io.File customIcon = new java.io.File(ext.getParentFile(), "icons/" + pkg + ".png");
-                    if (customIcon.exists()) {
-                        Drawable d = Drawable.createFromPath(customIcon.getAbsolutePath());
-                        if (d != null) return d;
+            // 仅用户明确指定的 3 个核心 App 走定制高清图标，其余一律走官方原生图标
+            if ("org.smarttube.stable".equals(pkg) || "com.tvbox.app".equals(pkg) || "com.quark.yun.tv".equals(pkg)) {
+                try {
+                    java.io.File ext = ctx.getExternalFilesDir(null);
+                    if (ext != null && ext.getParentFile() != null) {
+                        java.io.File customIcon = new java.io.File(ext.getParentFile(), "icons/" + pkg + ".png");
+                        if (customIcon.exists()) {
+                            Drawable d = Drawable.createFromPath(customIcon.getAbsolutePath());
+                            if (d != null) return d;
+                        }
                     }
-                }
-            } catch (Exception ignored) {}
-            try {
-                java.io.InputStream is = ctx.getAssets().open("icons/" + pkg + ".png");
-                Drawable d = Drawable.createFromStream(is, null);
-                if (d != null) return d;
-            } catch (Exception ignored) {}
-            Drawable custom = createAppleTvBanner(pkg); if (custom != null) return custom;
+                } catch (Exception ignored) {}
+                try {
+                    java.io.InputStream is = ctx.getAssets().open("icons/" + pkg + ".png");
+                    Drawable d = Drawable.createFromStream(is, null);
+                    if (d != null) return d;
+                } catch (Exception ignored) {}
+            }
         }
         int id = ri.activityInfo.banner;
         if (id == 0) id = ri.activityInfo.applicationInfo.banner;
@@ -451,10 +453,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         h.name.setVisibility(position < dockSize ? View.INVISIBLE : View.VISIBLE);   // the dock has no labels
         boolean focused = h.card.isFocused();   // a rebind after reload() can hit the focused tile
         h.name.setAlpha(focused ? 1f : 0f);
-        h.card.setScaleX(focused && animations ? focusScale() : 1f);
-        h.card.setScaleY(focused && animations ? focusScale() : 1f);
-        h.card.setTranslationY(focused && advancedEffects ? -4f * ctx.getResources().getDisplayMetrics().density : 0f);
-        h.card.setTranslationZ(focused && advancedEffects ? 8f * ctx.getResources().getDisplayMetrics().density : 0f);
+        h.card.setPivotX(w / 2f);
+        h.card.setPivotY(h / 2f);
+        h.card.setScaleX(focused && animations ? 1.14f : 1f);
+        h.card.setScaleY(focused && animations ? 1.14f : 1f);
+        h.card.setTranslationY(0f); // 绝不偏心上移
+        h.card.setTranslationZ(focused ? 16f * density : 0f);
         h.banner.setScaleX(focused && advancedEffects ? 1.035f : 1f);
         h.banner.setScaleY(focused && advancedEffects ? 1.035f : 1f);
         if (e.banner != null) {
@@ -646,19 +650,24 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
                     name.setAlpha(focused ? 1f : 0f);
                     name.setTranslationY(0f);
                 } else if (reducedMotion) {
+                    view.setPivotX(view.getWidth() / 2f);
+                    view.setPivotY(view.getHeight() / 2f);
                     view.animate().scaleX(s).scaleY(s)
-                            .translationY(focused ? -6f * density : 0f)
-                            .translationZ(focused ? 18f * density : 0f)
+                            .translationY(0f)
+                            .translationZ(focused ? 16f * density : 0f)
                             .setDuration(focused ? 120 : 80)
                             .setInterpolator(new DecelerateInterpolator())
                             .withLayer().start();
                     name.animate().alpha(focused ? 1f : 0f).setDuration(100).start();
                 } else {
+                    // 严格锁定缩放原点为应用卡片的绝对几何中心，从中心等比对称放大
+                    view.setPivotX(view.getWidth() / 2f);
+                    view.setPivotY(view.getHeight() / 2f);
                     view.animate().scaleX(s).scaleY(s)
-                            .translationY(focused ? -6f * density : 0f)
-                            .translationZ(focused ? 18f * density : 0f)
-                            .setDuration(advancedEffects ? (focused ? 220 : 170) : (focused ? 260 : 180))
-                            .setInterpolator(new OvershootInterpolator(focused ? (advancedEffects ? 0.7f : 1.6f) : 0f))
+                            .translationY(0f) // 保持中心原点，不产生 Y 轴位移
+                            .translationZ(focused ? 16f * density : 0f)
+                            .setDuration(focused ? 220 : 180)
+                            .setInterpolator(new OvershootInterpolator(focused ? 0.6f : 0f))
                             .withLayer().start();
                     if (advancedEffects) {
                         banner.animate().scaleX(focused ? 1.035f : 1f).scaleY(focused ? 1.035f : 1f)
